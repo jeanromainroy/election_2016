@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+
+	<link rel="stylesheet" href="assets/css/style_elections_2016.css">
+	<link rel="stylesheet" href="assets/css/auto-complete.css">
+	<link rel="stylesheet" href="assets/css/leaflet.css">
+
+    <script type="text/javascript" src="assets/libs/d3.js"></script>
+    <script type="text/javascript" src="assets/libs/d3-tip.js"></script>
+    <script type="text/javascript" src="assets/libs/leaflet.js"></script>
+	<script type="text/javascript" src="assets/libs/topojson.v1.js"></script>
+	<script type="text/javascript" src="assets/libs/localization-en.js"></script>
+	<script type="text/javascript" src="assets/libs/auto-complete.min.js"></script>
+	<script type="text/javascript" src="assets/libs/search-bar.js"></script>
+
+</head>
+<style>
+	/* To fix the pointer-events bug in the version of leaflet */
+	.leaflet-marker-icon, .leaflet-marker-shadow, .leaflet-image-layer, .leaflet-pane > svg path, .leaflet-tile-container {
+		pointer-events: visible;
+	}
+</style>
+<body>
+
+	<div id="map"></div>
+	
+	<div id="search-bar">
+		<input title="search-input" type="text" placeholder="Search a State...">
+		<button title="Search">
+			<img alt="Search" src="assets/img/search.svg">
+		</button>
+	</div>
+
+	<aside id="seats">
+		<table style="width:100%">
+			<tr>
+			  <th>Party</th>
+			  <th># Seats</th>
+			</tr>
+			<tr style="color: #0015bc">
+			  <td>Democrats</td>
+			  <td id="dems-seats"></td>
+			</tr>
+			<tr style="color: #e9141d">
+			  <td>Republicans</td>
+			  <td id="gop-seats"></td>
+			</tr>
+			<tr style="color: grey">
+			  <td>Undecided</td>
+			  <td id="ind-seats"></td>
+			</tr>
+		</table> 
+	</aside>
+
+	<script type="text/javascript" src="scripts/main.js"></script>
+</body>
+</html>
