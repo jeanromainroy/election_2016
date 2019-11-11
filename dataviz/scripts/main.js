@@ -194,10 +194,11 @@ function getToolTipText(d, data, localization) {
 	
 	var datum = data['states'][stateName];
 
-	var proGOP = Math.round(100.0*datum[1]/(datum[0] + datum[1]));
+	var nbrOfTweets = datum[0] + datum[1];
+	var proGOP = Math.round(100.0*datum[1]/nbrOfTweets);
 	var proDems = 100 - proGOP;
 
-	var info = "<h2>" + d.properties['NAME'] + "</h2><p>Dems: " + proDems + "%</p><p>Rep: " + proGOP + "%</p>";
+	var info = "<h2>" + d.properties['NAME'] + "</h2><p>Dems: " + proDems + "%</p><p>Rep: " + proGOP + "%</p><p>Nbr: " + nbrOfTweets + "</p>";
 
 	return info;
 }
