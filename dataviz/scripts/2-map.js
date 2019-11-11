@@ -150,10 +150,17 @@ function updateColors(data,color, localization){
 		}
 
 		// Compute pro GOP tweet percentage
-		var proGOP = datum[1]/(datum[1] + datum[0]);
-
+		// var proGOP = datum[1]/(datum[1] + datum[0]);
+		// var proDems = 1.0 - proGOP;
+		
 		// Return scaled color
-		return color(proGOP);
+		//return color(proGOP);
+
+		if(datum[0] >= datum[1]){
+			return "#0015bc";
+		}else{
+			return '#e9141d';
+		}
 	});
 }
 

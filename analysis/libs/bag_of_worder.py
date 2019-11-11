@@ -1,5 +1,6 @@
 from scipy.sparse import csr_matrix
 import numpy as np
+import math
 from nltk.tokenize import word_tokenize
 from tqdm import tqdm_notebook as tqdm
 
@@ -79,3 +80,46 @@ class BagOfWorder():
         # Return the BoW Matrix
         return matrixBoW
     
+
+    def computeTFID(self, tweets):
+
+        # Get the bow matrix
+        matrixBoW = self.computeMatrix(tweets)
+
+        # Prompt User
+        print("Normalizing using TFIDF...")
+        
+        # Compute the number of tweets
+        nbrOfTweets = len(tweets)
+        
+        # Transpose the matrix
+        invMatrixBoW = matrixBoW.T.astype('float32') 
+        
+        # Get the matrix length
+        matrixLength = invMatrixBoW.shape[0]
+        
+        # Go through the colums (words)
+        for i in range(0,matrixLength):
+            
+            # Get the column
+            column = invMatrixBoW[i]
+            
+            # Count the number of tweets containing that word
+            dfi = np.count_nonzero(column.toarray())
+            
+            # Check if dfi is positive
+            if(dfi == 0):
+                dfi = 1
+        
+            # Get the logarithmic ratio
+            idfi = math.log(nbrOfTweets/dfi)
+            
+            # Go through each element of the column
+            invMatrixBoW[i] = column*idfi
+            
+        
+        # Convert to CSR
+        matrixTFIDF = csr_matrix(invMatrixBoW.T, dtype=np.float32)
+        
+        # Return the matrixTFIDF Matrix
+        return matrixTFIDF

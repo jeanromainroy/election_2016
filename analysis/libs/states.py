@@ -108,7 +108,10 @@ def countStates(tweets_filepath):
 				continue
 
 			# increment state
-			state_counts[states[location]][label] += 1
+			try:
+				state_counts[states[location]][label] += 1
+			except KeyError:
+				continue
 				
 
 		return state_counts

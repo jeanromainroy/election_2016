@@ -20,27 +20,10 @@ class TwitterPreprocessor():
             u"\U000024C2-\U0001F251"
             "]+", flags=re.UNICODE)
 
-    # Sad Emoticons
-    emoticons_sad = set([
-        ':L', ':-/', '>:/', ':S', '>:[', ':@', ':-(', ':[', ':-||', '=L', ':<',
-        ':-[', ':-<', '=\\', '=/', '>:(', ':(', '>.<', ":'-(", ":'(", ':\\', ':-c',
-        ':c', ':{', '>:\\', ';('
-        ])
-
-    #HappyEmoticons
-    emoticons_happy = set([
-        ':-)', ':)', ';)', ':o)', ':]', ':3', ':c)', ':>', '=]', '8)', '=)', ':}',
-        ':^)', ':-D', ':D', '8-D', '8D', 'x-D', 'xD', 'X-D', 'XD', '=-D', '=D',
-        '=-3', '=3', ':-))', ":'-)", ":')", ':*', ':^*', '>:P', ':-P', ':P', 'X-P',
-        'x-p', 'xp', 'XP', ':-p', ':p', '=p', ':-b', ':b', '>:)', '>;)', '>:-)',
-        '<3'
-        ])
-
 
     def __init__(self):
         self.stemmer = SnowballStemmer("english", ignore_stopwords=True)
         self.stopwords = set(stopwords.words('english'))
-        self.emoticons = self.emoticons_happy.union(self.emoticons_sad)
         
 
     def to_datetime(self, datestring, dateformat="%Y-%m-%d"):
@@ -61,12 +44,30 @@ class TwitterPreprocessor():
         tweet = re.sub(r'((www\.[^\s]+)|(https?://[^\s]+))','', tweet) 
         tweet = re.sub(r':', '', tweet)
         tweet = re.sub(r'‚Ä¶', '', tweet)
-
-        #replace consecutive non-ASCII characters with a space
-        tweet = re.sub(r'[^\x00-\x7F]+',' ', tweet)
         
         #remove emojis from tweet
         tweet = self.emoji_pattern.sub(r'', tweet)
+
+        # Remove all the special characters
+        tweet = re.sub(r'\W', ' ', tweet)
+
+        # remove all single characters
+        tweet= re.sub(r'\s+[a-zA-Z]\s+', ' ', tweet)
+
+        # Remove single characters from the start
+        tweet = re.sub(r'\^[a-zA-Z]\s+', ' ', tweet) 
+
+        # Substituting multiple spaces with single space
+        tweet = re.sub(r'\s+', ' ', tweet, flags=re.I)
+
+        # Removing prefixed 'b'
+        tweet = re.sub(r'^b\s+', '', tweet)
+
+        # Make sure there is no punctuation in the characters
+        tweet = ''.join([c for c in tweet if c not in punctuation])
+
+        # Converting to Lowercase
+        tweet = tweet.lower()
 
         # Tokenize
         tokens = word_tokenize(tweet)
@@ -80,12 +81,6 @@ class TwitterPreprocessor():
             #check tokens against stop words, emoticons, punctuations and numerical
             if(w in self.stopwords):
                 continue
-            elif(w in self.emoticons):
-                continue
-            elif(w in punctuation):
-                continue
-            elif(any(char.isdigit() for char in w)):
-                continue
 
             # If clear append
             filtered_tweet.append(w)
@@ -96,9 +91,6 @@ class TwitterPreprocessor():
 
         # Remove leading/trailing whitespaces
         tweet = tweet.strip()
-        
-        # Make sure there is no punctuation in the characters
-        tweet = ''.join([c for c in tweet if c not in punctuation])
 
         return tweet
         
@@ -124,3 +116,15 @@ class TwitterPreprocessor():
         
         return tweet       
            
+
+    def preprocessAll(self, tweets):
+        
+        preprocessed_tweets = []
+
+        for tweet in tweets:
+
+            tweet = self.clean(tweet)
+            tweet = self.stem(tweet)
+            preprocessed_tweets.append(tweet)
+        
+        return preprocessed_tweets   
