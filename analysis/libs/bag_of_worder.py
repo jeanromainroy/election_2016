@@ -1,6 +1,7 @@
 from scipy.sparse import csr_matrix
 import numpy as np
 from nltk.tokenize import word_tokenize
+from tqdm import tqdm_notebook as tqdm
 
 class BagOfWorder():
 
@@ -63,7 +64,7 @@ class BagOfWorder():
         # Init the BoW Matrix
         matrixBoW = np.zeros((len(tweets), len(self.words)),dtype=np.int16)
         
-        for i in range(0,len(tweets)):
+        for i in tqdm(range(0,len(tweets))):
             
             # Grab Tweet
             tweet = tweets[i]
