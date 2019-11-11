@@ -6,6 +6,8 @@ The tweets were collected through the Twitter API using Social Feed Manager. Thr
 
 The parties/candidates tweets were used as a labeled dataset to train a unigram logistic regression. The model could then be used to infer the allegiance of tweets from the general population.
 
+[Link to interactive map](http://jeanromainroy.com/dataviz_election_2016.html)
+
 # Overview
 
 Let's first look at all the files in the repo
