@@ -62,41 +62,46 @@ class BagOfWorder():
             )
         
         
-        # Init the BoW Matrix
-        matrixBoW = np.zeros((len(tweets), len(self.words)),dtype=np.int16)
+        # Init empty arrays
+        row = []
+        col = []
+        data = []
         
-        for i in tqdm(range(0,len(tweets))):
-            
-            # Grab Tweet
-            tweet = tweets[i]
-            
-            # Compute BoW Line
-            matrixBoW[i] = self.computeLine(tweet)
-            
-        
-        # Convert to CSR
-        matrixBoW = csr_matrix(matrixBoW, shape=(len(tweets), len(self.words)), dtype=np.int16)
+        # Nbr of tweets
+        nbrOfTweets = len(tweets)
+
+        # Go through tweets
+        for j, t in tqdm(enumerate(tweets), total=nbrOfTweets):
+
+            # Go through dictionary words
+            for i, w in enumerate(self.words):
+
+                tf_ij = t.count(w)
+
+                if(tf_ij):
+                    row.append(j)
+                    col.append(i)
+                    data.append(tf_ij)
+
+        # Build the CSR Matrix
+        matrixBoW = csr_matrix((data, (row, col)), shape=(len(tweets), len(self.words)))
         
         # Return the BoW Matrix
-        return matrixBoW
-    
+        return matrixBoW   
 
-    def computeTFID(self, tweets):
 
-        # Get the bow matrix
-        matrixBoW = self.computeMatrix(tweets)
+
+    def computeTFIDF(self, matrixBoW):
 
         # Prompt User
         print("Normalizing using TFIDF...")
-        
-        # Compute the number of tweets
-        nbrOfTweets = len(tweets)
         
         # Transpose the matrix
         invMatrixBoW = matrixBoW.T.astype('float32') 
         
         # Get the matrix length
         matrixLength = invMatrixBoW.shape[0]
+        nbrOfTweets = invMatrixBoW.shape[1]
         
         # Go through the colums (words)
         for i in range(0,matrixLength):
