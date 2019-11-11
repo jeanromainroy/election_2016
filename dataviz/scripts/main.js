@@ -2,13 +2,9 @@
 	"use strict";
 
 	/***** Constants *****/
-	const parties = [
-		{id: 0, name: null, color: "none", abbreviation: null},									// no party
-		{id: 1, name: "Democrats", color: "#0015bc", abbreviation: "Dems"},
-		{id: 2, name: "Republicans", color: "#e9141d", abbreviation: "GOP"},
-		{id: 6, name: "Indépendant", color: "grey", abbreviation: "Ind"}
-	];
-	const nbrParties = parties.length;
+
+	// created_at parser
+	var dateparser = d3.timeParse("%Y-%m-%d");
 
 	// Set the center coordinates for usa
 	const centerLat = 38.405226;
@@ -21,52 +17,44 @@
 		'worldCopyJump': true
 	});
 
+
+	// Time Sliders
+	var track = d3.select("#track");
+	var slider_1 = d3.select("#slider_1");
+	const sliderWidth = remove_px(slider_1.style("width"));
+	const trackWidth = remove_px(track.style("width"));
+	const trackLeftOffset = remove_px(track.style("left"));
+
+	/***** Set the Timeline's attributes *****/
+	const timelineWidth = remove_px(track.style("width"));
+	const timelineHeight = remove_px(track.style("height"));
+	const timelineOffset = remove_px(track.style("left"));
+
+	
+	// Color Scale
+	var colorScale = color.domain([0.0, 1.0]).range(['#0015bc', '#e9141d']).interpolate(d3.interpolate);
+
+
+	// Scales
+	var timelineScale = d3.scaleTime().range([0, timelineWidth]);
+	var timelineAxis = d3.axisBottom(timelineScale).tickFormat(localization.getFormattedDate);
+
+
+	/***** We initiate the timeline html object *****/
+	var trackSvg = track.select("svg")    // we grab the SVG object inside of the track html object
+		.attr("width", timelineWidth)       // set the width and height
+		.attr("height", timelineHeight);
+
+
+
 	// Disable double click
 	map.doubleClickZoom.disable(); 
 
-	// Seats Table Setters
-	function seatsDems(nbrSeats){
-		d3.select("#seats").select("#dems-seats").text(nbrSeats);
-	}
-	function seatsGOP(nbrSeats){
-		d3.select("#seats").select("#gop-seats").text(nbrSeats);
-	}
-	function seatsIND(nbrSeats){
-		d3.select("#seats").select("#ind-seats").text(nbrSeats);
-	}
-
-	// Update Seats Table
-	function updateSeats(){
-
-		// Init variables
-		var nbrSeatsDems = 0;
-		var nbrSeatsGOP = 0;
-		var nbrSeatsIND = 0;
-
-		// Go through path nodes
-		d3.selectAll("path").nodes().forEach(function(node){
-			
-			var partyId = +d3.select(node).attr("party");
-			
-			if(partyId == 1){
-				nbrSeatsDems += 1;
-			}else if(partyId == 2){
-				nbrSeatsGOP += 1;
-			}else if(partyId == 3){
-				nbrSeatsIND += 1;
-			}			
-		});
-
-		// Setters
-		seatsDems(nbrSeatsDems);
-		seatsGOP(nbrSeatsGOP);
-		seatsIND(nbrSeatsIND);
-	}
 
 	/***** Loading the data *****/
 	var promises = [];
 	promises.push(d3.json("data/usa.json"));
-	promises.push(d3.csv("data/data.csv"));
+	promises.push(d3.json("data/data.json"));
 	
 	Promise.all(promises).then(function (results) {
 
@@ -74,8 +62,22 @@
 		var usa = results[0];
 		var data = results[1];
 
+		// Create sources
+		var states = [];
+		usa.features.forEach(function(state){
+			states.push({
+				"id":+state.properties["STATE"],
+				"name":state.properties["NAME"]
+			});
+		})
+		var dataframe = createFromSources(data,dateparser);
+
+		/***** Set the time scale using the data *****/
+		domainX(timelineScale,dataframe);
+
+
 		/***** Initialize the map *****/
-		initTileLayer(L, map);
+		initTileLayer(L, map, centerLat, centerLng, initZoom);
 		var mapSvg = initSvgLayer(map);
 		var g = undefined;
 		if (mapSvg) {
@@ -107,7 +109,7 @@
 		.key(function (d) {
 			return d.id;
 		})
-		.entries(data)
+		.entries(states)
 		.map(function (d) {
 			return {
 				id: +d.values[0].id,
@@ -121,14 +123,56 @@
 		var searchBarElement = searchBar(autoCompleteSources);
 		searchBarElement.search = function (id) {
 			var feature = usa.features.find(function (d) {
-				return d.properties["NUMCF"] === id;
+				return +d.properties["STATE"] === id;
 			});
 			var bound = d3.geoBounds(feature);
 			search(map, g, id, [
 				[bound[0][1], bound[0][0]],
 				[bound[1][1], bound[1][0]]
 			]);
+
+			// Unshade all states
+			d3.selectAll("path").classed("hovered",false);
+
+			// Find the search one
+			var toBeSelected = d3.selectAll("path").filter(function(state){
+				if(state){
+					return +state.properties["STATE"] === id;
+				}else{
+					return false;
+				}
+			});
+
+			// And shade it
+			toBeSelected.classed("hovered",true);
 		};
+
+
+		/***** Set the timeline axis *****/
+		trackSvg.append("g")
+			.attr("class", "axis")
+			.call(timelineAxis
+					.ticks(d3.timeDay, 3)
+					.tickFormat(d3.timeFormat('%d'))); 
+
+		/***** Add Mouse event to Time Slider *****/
+		var drag = d3.drag()
+			.on("start", function(d){
+				slider_select(d3.select(this));
+			})
+			.on("drag", function(d){
+				var x_pos = d3.event.x;
+				slider_setXPos(d3.select(this),x_pos);
+				updateView();
+			})
+			.on("end", function(d){
+				slider_deselect(d3.select(this));
+				updateView();
+			});
+
+		// Set drag event handle on sliders
+		slider_1.call(drag)
+
 	});
 
 
@@ -139,7 +183,7 @@
  * @return {string}       Le texte à afficher dans l'infobulle.
  */
 function getToolTipText(d) {
-	return d.properties['NOMSEN'];
+	return d.properties['NAME'];
 }
 
 /**
@@ -191,174 +235,57 @@ function search(map, g, stateId, bound) {
 	statePath.classed("hovered",true);
 }  
 
+
 /**
- * Initialize the background map and the initial position
- *
- * @param L     The Leaflet context
- * @param map   The Leaflet map
- *
- */
-function initTileLayer(L, map) {
-
-	/*
-		Good website to select a map style : https://leaflet-extras.github.io/leaflet-providers/preview/
-	*/
-	L.tileLayer(
-		'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-			maxZoom: 10.,
-			minZoom: 2.,
-			attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-		}
-	).addTo(map);
-
-	// Set the initial position
-	map.setView([centerLat, centerLng], initZoom);
+* Convert position string to integer, ex. 42px -> 42
+* 
+* @param attr_str  The string of a value followed by px
+*/
+function remove_px(attr_str){
+	return +attr_str.substring(0,attr_str.length-2);
 }
 
 
-/**
- * Initialize the SVG context that will host the Leaflet map.
- *
- * @param map   The Leaflet map
- * @return      The created SVG element
- *
- */
-function initSvgLayer(map) {
-	// TODO: Créer l'élément SVG en vous basant sur l'exemple fourni. Assurez-vous de créer un élément "g" dans l'élément SVG.
-	var svg = d3.select(map.getPanes().overlayPane).append("svg");
-	var g = svg.append("g").attr("class", "leaflet-zoom-hide");
+/***** Sliders Functions *****/
+// Getter
+function slider_getXPos(slider){
 
-	return svg;
+	var sliderOffset = remove_px(slider.style("left"));
+
+	return sliderOffset - timelineOffset + sliderWidth/2.0;
 }
 
+// Setter
+function slider_setXPos(slider,x_pos){
+	
+	// Get new position for slider
+	var newpos = x_pos - sliderWidth/2;
 
-/**
- * Crée les tracés des etats sur le contexte SVG qui se trouve au-dessus de la carte Leaflet.
- *
- * @param g             Le groupe dans lequel les tracés des etats doivent être créés.
- * @param path          La fonction qui doit être utilisée pour tracer les entités géométriques selon la bonne projection.
- * @param usa   		Les entités géographiques qui doivent être utilisées pour tracer les etats.
- * @param tip                   L'infobulle à afficher lorsqu'une barre est survolée.
- */
-function createStates(g, path, usa, tip) {
-  
-	var wasDragged = false;
-	var mouseDownCoordinates = [0,0];
-	var mouseUpCoordinates = [0,0];
-	var mouseDistance = 0;
+	// Make sure this position is inside of the track
+	if(newpos < trackLeftOffset){ 										// too left
+		return;
+	}else if(newpos + sliderWidth > trackLeftOffset + trackWidth){		// too right
+		return;
+	}
 
-	var mapPathGroups = g.selectAll("g")
-		.data(usa.features)
-		.enter().append("g");
-  
-	mapPathGroups.append("path")
-		.attr("d", path)
-		.attr("party",0)
-		.on("mouseover",function(d){
+	// Set position
+	slider.style("left",newpos + "px");
 
-			// Set style
-			d3.selectAll("path").classed("hovered",false);
-			d3.select(this).classed("hovered",true);
-			
-			// Very annoying way to set the position of the info box
-			var mousePos = d3.mouse(this);
-			var posX = mousePos[0] + 20;
-			var posY = mousePos[1] - 20;
-
-			// Show info box
-			tip.show(d);
-
-			// Set position
-			tip.style('left', posX + "px");
-			tip.style('top', posY + "px");
-		})
-		.on("mouseout",function(d){
-
-			// Set style
-			d3.select(this).classed("hovered",false);
-
-			// Hide info box
-			tip.hide(d);
-		})
-		.on("mousedown",function(){
-
-			// Get mouse event
-			mouseDownCoordinates = d3.mouse(this);
-
-			console.log(d3.select(this));
-		})
-		.on("mouseup",function(){
-
-			// Get mouse event
-			mouseUpCoordinates = d3.mouse(this);
-
-			// Get mouse distance between two click events
-			mouseDistance = Math.round(Math.sqrt(Math.pow(mouseUpCoordinates[0] - mouseDownCoordinates[0],2) + Math.pow(mouseUpCoordinates[1] - mouseDownCoordinates[1],2)));
-
-			// Check if it was a click or a drag
-			if(mouseDistance > 0){
-				wasDragged = true;
-			}else{
-				wasDragged = false;
-			}
-
-			// Clear the mouse variables
-			mouseDownCoordinates = [0,0];
-			mouseUpCoordinates = [0,0];
-			mouseDistance = 0;
-
-			// If was dragged then stop here
-			if(wasDragged){
-				wasDragged = false;
-				return;
-			}
-
-			// Get node
-			var node = d3.select(this);
-
-			// Get current party
-			var currentParty = +node.attr("party");
-
-			// Alternate through parties
-			var newParty = (currentParty + 1) % nbrParties;
-
-			// Set party state
-			node.attr("party",newParty);
-
-			// Set style
-			node.style("fill",parties[newParty].color);
-
-			// Update Table
-			updateSeats();
-		});
+	// Set the date under the slider
+	var actualXPos = slider_getXPos(slider);
+	var parsedDate = timelineScale.invert(actualXPos);
+	var formattedDate = localization.getShortMonthDay(parsedDate);
+	slider.select("p").text(formattedDate);
 }
- 
-/**
- * Met à jour la position et la taille de l'élément SVG, la position du groupe "g" et l'affichage des tracés lorsque
- * la position ou le zoom de la carte est modifié.
- *
- * @param svg       		L'élément SVG qui est utilisé pour tracer les éléments au-dessus de la carte Leaflet.
- * @param g         		Le groupe dans lequel les tracés des etats ont été créés.
- * @param path     			La fonction qui doit être utilisée pour tracer les entités géométriques selon la bonne projection.
- * @param usa			Les entités géographiques qui doivent être utilisées pour tracer les etats.
- *
- * @see https://gist.github.com/d3noob/9211665
- */
-function updateMap(svg, g, path, usa) {
 
-	var bounds = path.bounds(usa);
-	var topLeft = bounds[0];
-	var bottomRight = bounds[1];
+// Appearance
+function slider_select(slider){
+	slider.style("opacity","0.5");
+}
 
-	svg.attr("width", bottomRight[0] - topLeft[0])
-		.attr("height", bottomRight[1] - topLeft[1])
-		.style("left", topLeft[0] + "px")
-		.style("top", topLeft[1] + "px");
+function slider_deselect(slider){
+	slider.style("opacity","1.0");
+}
 
-	g.attr("transform", "translate(" + -topLeft[0] + "," + -topLeft[1] + ")");
-
-	// Redraw States
-	g.selectAll("path").attr("d", path);
-} 
 
 })(L, d3, topojson, searchBar, localization);
