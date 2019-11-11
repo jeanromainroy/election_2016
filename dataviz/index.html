@@ -4,16 +4,12 @@
 	<meta charset="UTF-8">
 
 	<link rel="stylesheet" href="assets/css/style_elections_2016.css">
-	<link rel="stylesheet" href="assets/css/auto-complete.css">
 	<link rel="stylesheet" href="assets/css/leaflet.css">
 
     <script type="text/javascript" src="assets/libs/d3.js"></script>
     <script type="text/javascript" src="assets/libs/d3-tip.js"></script>
     <script type="text/javascript" src="assets/libs/leaflet.js"></script>
-	<script type="text/javascript" src="assets/libs/topojson.v1.js"></script>
 	<script type="text/javascript" src="assets/libs/localization-en.js"></script>
-	<script type="text/javascript" src="assets/libs/auto-complete.min.js"></script>
-	<script type="text/javascript" src="assets/libs/search-bar.js"></script>
 
 </head>
 <style>
@@ -25,19 +21,14 @@
 <body>
 
 	<div id="map"></div>
-	
-	<div id="search-bar">
-		<input title="search-input" type="text" placeholder="Search a State...">
-		<button title="Search">
-			<img alt="Search" src="assets/img/search.svg">
-		</button>
-	</div>
 
-	<div id="track">
-		<svg></svg>
-	</div>
-	<div id="slider_1" class="slider">
-		<p></p>
+	<div id="timeline">
+		<div id="track">
+			<svg></svg>
+			<div id="slider">
+				<p></p>
+			</div>
+		</div>
 	</div>
 
 	<script type="text/javascript" src="scripts/1-preproc.js"></script>

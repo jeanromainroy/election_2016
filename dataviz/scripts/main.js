@@ -1,4 +1,4 @@
-(function (L, d3, topojson, searchBar, localization) {
+(function (L, d3, localization) {
 	"use strict";
 
 	/***** Constants *****/
@@ -10,7 +10,6 @@
 	const centerLat = 38.405226;
 	const centerLng = -99.221494;
 	const initZoom = 4;
-	const fitBoundsPadding = [32,32];
 
 	/***** UI Objects *****/
 	var map = L.map('map', {
@@ -20,8 +19,8 @@
 
 	// Time Sliders
 	var track = d3.select("#track");
-	var slider_1 = d3.select("#slider_1");
-	const sliderWidth = remove_px(slider_1.style("width"));
+	var slider = d3.select("#slider");
+	const sliderWidth = remove_px(slider.style("width"));
 	const trackWidth = remove_px(track.style("width"));
 	const trackLeftOffset = remove_px(track.style("left"));
 
@@ -45,11 +44,6 @@
 	var trackSvg = track.select("svg")    // we grab the SVG object inside of the track html object
 		.attr("width", timelineWidth)       // set the width and height
 		.attr("height", timelineHeight);
-
-
-
-	// Disable double click
-	map.doubleClickZoom.disable(); 
 
 
 	/***** Loading the data *****/
@@ -107,7 +101,7 @@
 		function updateView(){
 
 			// Get slider date
-			var slider_date = timelineScale.invert(slider_getXPos(slider_1));
+			var slider_date = timelineScale.invert(slider_getXPos(slider));
 
 			// Update Data
 			data = timeBoundData(dataframe,slider_date);
@@ -123,35 +117,6 @@
 			updateMap(mapSvg, g, path, usa);
 		});
 		updateMap(mapSvg, g, path, usa);
-
-
-		/***** Search Bar *****/
-		var autoCompleteSources = d3.nest()
-		.key(function (d) {
-			return d.id;
-		})
-		.entries(states)
-		.map(function (d) {
-			return {
-				id: +d.values[0].id,
-				name: d.values[0].name
-			};
-		})
-		.sort(function (a, b) {
-			return d3.ascending(a.name, b.name);
-		});
-
-		var searchBarElement = searchBar(autoCompleteSources);
-		searchBarElement.search = function (id) {
-			var feature = usa.features.find(function (d) {
-				return +d.properties["STATE"] === id;
-			});
-			var bound = d3.geoBounds(feature);
-			search(map, [
-				[bound[0][1], bound[0][0]],
-				[bound[1][1], bound[1][0]]
-			]);
-		};
 
 
 		/***** Set the timeline axis *****/
@@ -177,7 +142,7 @@
 			});
 
 		// Set drag event handle on sliders
-		slider_1.call(drag)
+		slider.call(drag)
 
 	});
 
@@ -224,25 +189,6 @@ function createPath() {
 	return d3.geoPath().projection(transform);
 }
 
-
-
-/**
- * Permet d'effectuer un zoom automatique sur la etat recherchée afin de la mettre en évidence.
- *
- * @param map           La carte Leaflet.
- * @param g             Le groupe dans lequel les tracés des etats ont été créés.
- * @param stateId    	Le numéro de l'etat.
- * @param bound         La borne a été utiliser pour réaliser un zoom sur la région.
- *
- * @see http://leafletjs.com/reference-0.7.7.html#map-fitbounds
- */
-function search(map, bound) {
-
-	// Focus on the state
-	map.fitBounds(bound, {
-		'padding': fitBoundsPadding
-	});
-}  
 
 
 /**
@@ -297,4 +243,4 @@ function slider_deselect(slider){
 }
 
 
-})(L, d3, topojson, searchBar, localization);
+})(L, d3, localization);
