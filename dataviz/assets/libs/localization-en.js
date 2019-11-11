@@ -87,7 +87,13 @@ var localization = (function(d3) {
     if(typeof s !== 'string') {
       return '';
     }
-    return s.charAt(0).toUpperCase() + s.slice(1);
+
+    var splitStr = s.toLowerCase().split(' ');
+    for (var i = 0; i < splitStr.length; i++) {
+        splitStr[i] = splitStr[i].charAt(0).toUpperCase() + splitStr[i].substring(1);     
+    }
+    
+    return splitStr.join(' '); 
   }
 
   return self;

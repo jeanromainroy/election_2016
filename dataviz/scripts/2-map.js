@@ -64,14 +64,7 @@ function createStates(g, path, usa, tip) {
 
 	mapPathGroups.append("path")
 		.attr("d", path)
-		.attr("data-state",function(d){
-			return d.properties.NAME;
-		})
 		.on("mouseover",function(d){
-
-			// Set style
-			d3.selectAll("path").classed("hovered",false);
-			d3.select(this).classed("hovered",true);
 			
 			// Very annoying way to set the position of the info box
 			var mousePos = d3.mouse(this);
@@ -86,10 +79,7 @@ function createStates(g, path, usa, tip) {
 			tip.style('top', posY + "px");
 		})
 		.on("mouseout",function(d){
-
-			// Set style
-			d3.select(this).classed("hovered",false);
-
+			
 			// Hide info box
 			tip.hide(d);
 		})
@@ -130,6 +120,45 @@ function createStates(g, path, usa, tip) {
 		});
 }
  
+
+/**
+ * Updates the colors of the states on the map
+ * 
+ * @param data              The data being visualized
+ * @param color             The color scale for the branches
+ */
+function updateColors(data,color, localization){
+
+	// Fill the circles with their new color
+	d3.selectAll("path").style("fill", function(path){
+
+		// We have null paths for some reasons
+		if(path == null){
+			return;
+		}
+
+		// Get data
+		var id = +path.properties["STATE"];
+		var name = localization.capitalize(path.properties["NAME"]);
+
+		// Get tweet data for the state
+		var datum = data['states'][name];
+
+		// If this path is not part of the filtered data, return black
+		if(datum == null){
+			return "#000";
+		}
+
+		// Compute pro GOP tweet percentage
+		var proGOP = datum[1]/(datum[1] + datum[0]);
+
+		// Return scaled color
+		return color(proGOP);
+	});
+}
+
+
+
 /**
  * Met à jour la position et la taille de l'élément SVG, la position du groupe "g" et l'affichage des tracés lorsque
  * la position ou le zoom de la carte est modifié.

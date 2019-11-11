@@ -30,9 +30,10 @@
 	const timelineHeight = remove_px(track.style("height"));
 	const timelineOffset = remove_px(track.style("left"));
 
-	
-	// Color Scale
-	var colorScale = color.domain([0.0, 1.0]).range(['#0015bc', '#e9141d']).interpolate(d3.interpolate);
+
+	// Init the color scale
+	var color = d3.scaleSqrt();
+	color.domain([0.0, 1.0]).range(['#0015bc', '#e9141d']).interpolate(d3.interpolate);
 
 
 	// Scales
@@ -60,9 +61,9 @@
 
 		/***** Load the data *****/
 		var usa = results[0];
-		var data = results[1];
+		var tweets = results[1];
 
-		// Create sources
+		// Get States from Geo
 		var states = [];
 		usa.features.forEach(function(state){
 			states.push({
@@ -70,9 +71,11 @@
 				"name":state.properties["NAME"]
 			});
 		})
-		var dataframe = createFromSources(data,dateparser);
-
-		/***** Set the time scale using the data *****/
+		
+		// Create the dataframe
+		const dataframe = createFromSources(tweets,usa,dateparser);
+		
+		// Set the time scale using the data
 		domainX(timelineScale,dataframe);
 
 
@@ -88,7 +91,7 @@
 		/***** Tip Info Box *****/
 		var tip = d3.tip().attr('class','d3-tip');
 		tip.html(function(d) {
-            return getToolTipText.call(this, d);
+            return getToolTipText.call(this, d, data, localization);
         });
 		g.call(tip);
 
@@ -96,6 +99,24 @@
 		/***** Create the states *****/
 		var path = createPath();
 		createStates(g, path, usa, tip);
+
+		
+		// Get active data
+		var data = [];
+
+		function updateView(){
+
+			// Get slider date
+			var slider_date = timelineScale.invert(slider_getXPos(slider_1));
+
+			// Update Data
+			data = timeBoundData(dataframe,slider_date);
+			
+			// Update Colors
+			updateColors(data, color, localization);
+		}
+		updateView();
+
 
 		/***** Draw and onview reset redraw *****/
 		map.on("zoom", function () {
@@ -126,25 +147,10 @@
 				return +d.properties["STATE"] === id;
 			});
 			var bound = d3.geoBounds(feature);
-			search(map, g, id, [
+			search(map, [
 				[bound[0][1], bound[0][0]],
 				[bound[1][1], bound[1][0]]
 			]);
-
-			// Unshade all states
-			d3.selectAll("path").classed("hovered",false);
-
-			// Find the search one
-			var toBeSelected = d3.selectAll("path").filter(function(state){
-				if(state){
-					return +state.properties["STATE"] === id;
-				}else{
-					return false;
-				}
-			});
-
-			// And shade it
-			toBeSelected.classed("hovered",true);
 		};
 
 
@@ -182,8 +188,18 @@
  * @param d               Les données associées à la barre survollée par la souris.
  * @return {string}       Le texte à afficher dans l'infobulle.
  */
-function getToolTipText(d) {
-	return d.properties['NAME'];
+function getToolTipText(d, data, localization) {
+
+	var stateName = localization.capitalize(d.properties['NAME']);
+	
+	var datum = data['states'][stateName];
+
+	var proGOP = Math.round(100.0*datum[1]/(datum[0] + datum[1]));
+	var proDems = 100 - proGOP;
+
+	var info = "<h2>" + d.properties['NAME'] + "</h2><p>Dems: " + proDems + "%</p><p>Rep: " + proGOP + "%</p>";
+
+	return info;
 }
 
 /**
@@ -219,20 +235,12 @@ function createPath() {
  *
  * @see http://leafletjs.com/reference-0.7.7.html#map-fitbounds
  */
-function search(map, g, stateId, bound) {
+function search(map, bound) {
 
 	// Focus on the state
 	map.fitBounds(bound, {
 		'padding': fitBoundsPadding
 	});
-
-	// Get the state
-	var statePath = g.selectAll("path").filter(function(d){
-		return d.properties.NUMCF == stateId;
-	})
-	
-	// Set state to selected
-	statePath.classed("hovered",true);
 }  
 
 

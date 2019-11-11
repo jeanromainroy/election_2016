@@ -27,12 +27,6 @@ path {
 }
 
 
-/***** Circonscription Select *****/
-.hovered{
-  fill: rgba(100,100,100,0.3);
-}
-
-
 /***** Search bar *****/
 #search-bar {
   position: absolute;
@@ -115,7 +109,7 @@ path {
 
 #track .axis {
   shape-rendering: crispEdges;
-  font-size: 0.7em;
+  font-size: 12px;
 }
 
 #track .axis line {
