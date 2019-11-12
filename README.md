@@ -138,4 +138,5 @@ More tweets should be hydrated for each day/state visualized. Right now it is ve
 
 # Authors
 
-* **Jean-Romain Roy** - *First author* - [jeanromainroy](https://github.com/jeanromainroy)
+* **Jean-Romain Roy** - *Co-author: data collection, preprocessing, logistic regression, interactive map* - [jeanromainroy](https://github.com/jeanromainroy)
+* **Pankaj Raj Roy** - *Co-author: logistic regression, random forest, svm, neural network model comparaison* - [proy3](https://github.com/proy3)

@@ -32,7 +32,7 @@
 
 	// Init the color scale
 	var color = d3.scaleLinear();
-	color.domain([0.0, 1.0]).range(['#0015bc', '#e9141d']).interpolate(d3.interpolate);
+	color.domain([0.0, 0.5, 1.0]).range(['#0015bc', "#f0f0f0", '#e9141d']).interpolate(d3.interpolate);
 
 
 	// Scales
