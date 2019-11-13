@@ -71,12 +71,15 @@ class BagOfWorder():
         nbrOfTweets = len(tweets)
 
         # Go through tweets
-        for j, t in tqdm(enumerate(tweets), total=nbrOfTweets):
+        for j, tweet in tqdm(enumerate(tweets), total=nbrOfTweets):
+            
+            # Tokenize
+            tokens = word_tokenize(tweet)
 
             # Go through dictionary words
             for i, w in enumerate(self.words):
 
-                tf_ij = t.count(w)
+                tf_ij = tokens.count(w)
 
                 if(tf_ij):
                     row.append(j)
