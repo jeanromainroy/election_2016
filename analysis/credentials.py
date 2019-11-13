@@ -1,5 +1,5 @@
-CONSUMER_KEY = ""
-CONSUMER_SECRET = ""
+CONSUMER_KEY = "iZaLvYAlIsgXput6dWH7okfu4"
+CONSUMER_SECRET = "enKFdOHgiTrxHyoPozva30vqMuJtTUFL8C9vTQkGAZBJqI4JLY"
 
-oauth_token = ""
-oauth_secret = ""
+oauth_token = "1192699843849924608-SuWdFx1LFJce2rdWmnLQMlFSU7RHCE"
+oauth_secret = "L2HC23MROsrSUlQssNyMRbneAorSzgjhz77GAvoHXYtIE"

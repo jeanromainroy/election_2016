@@ -4,7 +4,7 @@ The objective of this project was to create a tool that maps the twitter feed re
 
 The tweets were collected through the Twitter API using Social Feed Manager. Three collection are of significance, the tweets from the democratic party and it's candidates, idem for the republicans and general tweets from the american population. The three collections were found on the [George Washington University Librairies Dataverse](https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/PDI7IN). Only the unique tweet ids are shared in those collections. It was thus necessary to hydrate the tweets in order to learn their time of creation, the location of the account and the tweet content.
 
-The parties/candidates tweets were used as a labeled dataset to train a unigram logistic regression. The model could then be used to infer the allegiance of tweets from the general population.
+The parties/candidates tweets were used as a labeled dataset to train a 1D Convolutional Neural Network. The model could then be used to infer the political affiliation of tweets from the general population.
 
 [Link to interactive map](http://jeanromainroy.com/dataviz_election_2016.html)
 
@@ -133,8 +133,8 @@ If more data is gathered using the *1-mining.ipynb* notebook, it should be added
 
 # Potential Future Development
 
-More tweets should be hydrated for each day/state visualized. Right now it is very hard to see any trends with the insufficient amount of data. Something more sophisticated than a unigram logistic regression should also be tried to get better predictions on the tweet's allegiance.
-
+More tweets should be collected to have at least 1000 tweets per day per state. Furthermore, more days should be added to have smoother transitions between the frames. Right now it is very hard to see any trends with the insufficient amount of data. A model able to leverage the other features of our dataset (eg. retweets, user description, etc.). The training data is very different than the data we infer on. If we could find labeled tweets from the general population
+or synthetically generate tweets that look similar it would improve our performances. In addition, we can use a more sophisticated method based on recurrent neural networks like LSTM. Doing so, the model can learn the general context of the tweets and can thus learn the political better.
 
 # Authors
 
